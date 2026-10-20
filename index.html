@@ -24,7 +24,29 @@
       --yellow: #f59e0b;
       --sidebar-w: 230px;
     }
-    body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--bg); color: var(--text); display: flex; min-height: 100vh; }
+    /* ── Tema claro ── */
+    body.light {
+      --bg: #f3f4f8;
+      --sidebar-bg: #ffffff;
+      --sidebar-border: #e2e5ee;
+      --card-bg: #ffffff;
+      --card-border: #dde1ef;
+      --text: #1a1d2e;
+      --muted: #6b7280;
+    }
+    body.light .brand { color: #1a1d2e; }
+    body.light nav button { color: #6b7280; }
+    body.light nav button:hover { background: rgba(91,107,255,.08); color: #1a1d2e; }
+    body.light .header-actions button:hover { background: #e9ecf4; }
+    body.light .track { background: rgba(0,0,0,.08); }
+    body.light table thead th { background: #f8f9fc; }
+    body.light tbody tr:hover { background: rgba(91,107,255,.04); }
+    body.light .modal { background: #fff; }
+    body.light .form-group input,
+    body.light .form-group select,
+    body.light .form-group textarea { background: #f3f4f8; color: #1a1d2e; }
+    body.light .upload-area { border-color: #dde1ef; }
+    body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--bg); color: var(--text); display: flex; min-height: 100vh; transition: background .2s, color .2s; }
 
     /* ── Sidebar ── */
     aside {
@@ -290,6 +312,11 @@
         <span id="breadcrumb">Gestão da carteira / <b>Visão geral</b></span>
       </div>
       <div class="header-actions">
+        <button onclick="toggleTheme()" id="theme-btn" title="Alternar tema">
+          <svg id="theme-icon-moon" xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9z"/></svg>
+          <svg id="theme-icon-sun" xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:none"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/></svg>
+          <span id="theme-label">Claro</span>
+        </button>
         <button onclick="refreshAll()">
           <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/><path d="M8 16H3v5"/></svg>
           Atualizar
@@ -436,7 +463,7 @@
         <input type="text" id="busca-cobranca" placeholder="Buscar por nome, CPF/CNPJ..." oninput="renderCobranca()" />
         <select id="filtro-analista-cob" onchange="renderCobranca()">
           <option value="">Todos os analistas</option>
-          <option>Jennifer</option><option>Micael</option><option>Queila</option><option>Thais</option>
+          <option>Jennifer</option><option>Marcelo</option><option>Micael</option><option>Queila</option><option>Thais</option>
         </select>
         <select id="filtro-status-cob" onchange="renderCobranca()">
           <option value="">Todos os status</option>
@@ -573,7 +600,7 @@
       <div class="form-group full"><label class="lbl">Cliente *</label><input id="cob-cliente" placeholder="Nome completo ou razão social" /></div>
       <div class="form-group"><label class="lbl">CPF / CNPJ</label><input id="cob-cpf" placeholder="000.000.000-00" /></div>
       <div class="form-group"><label class="lbl">Analista *</label>
-        <select id="cob-analista"><option value="">Selecione</option><option>Jennifer</option><option>Micael</option><option>Queila</option><option>Thais</option></select>
+        <select id="cob-analista"><option value="">Selecione</option><option>Jennifer</option><option>Marcelo</option><option>Micael</option><option>Queila</option><option>Thais</option></select>
       </div>
       <div class="form-group"><label class="lbl">Valor (R$) *</label><input id="cob-valor" type="number" min="0" step="0.01" placeholder="0,00" /></div>
       <div class="form-group"><label class="lbl">Vencimento</label><input id="cob-vencimento" type="date" /></div>
@@ -618,7 +645,7 @@
     <div class="form-grid">
       <div class="form-group full"><label class="lbl">Cliente *</label><input id="neg-cliente" placeholder="Nome completo ou razão social" /></div>
       <div class="form-group"><label class="lbl">Analista</label>
-        <select id="neg-analista"><option value="">Selecione</option><option>Jennifer</option><option>Micael</option><option>Queila</option><option>Thais</option></select>
+        <select id="neg-analista"><option value="">Selecione</option><option>Jennifer</option><option>Marcelo</option><option>Micael</option><option>Queila</option><option>Thais</option></select>
       </div>
       <div class="form-group"><label class="lbl">Valor Negociado (R$)</label><input id="neg-valor" type="number" min="0" step="0.01" placeholder="0,00" /></div>
       <div class="form-group"><label class="lbl">Entrada (R$)</label><input id="neg-entrada" type="number" min="0" step="0.01" placeholder="0,00" /></div>
@@ -964,7 +991,7 @@ function buildChart(id, type, labels, data, colors, opts={}) {
 }
 
 const COLORS = ['#5b6bff','#22c55e','#ef4444','#f59e0b','#a78bfa','#06b6d4','#f97316','#84cc16'];
-const ANALISTAS = ['Jennifer','Micael','Queila','Thais'];
+const ANALISTAS = ['Jennifer','Marcelo','Micael','Queila','Thais'];
 
 function refreshAll() {
   const cob = load('cobranca');
@@ -1062,6 +1089,26 @@ function refreshAll() {
 
 // Fechar modal clicando fora
 document.querySelectorAll('.modal-overlay').forEach(o=>o.addEventListener('click',function(e){if(e.target===this)this.classList.remove('open');}));
+
+// ══════════════════════════════════════
+// TEMA CLARO / ESCURO
+// ══════════════════════════════════════
+function toggleTheme() {
+  const isLight = document.body.classList.toggle('light');
+  localStorage.setItem('ib_theme', isLight ? 'light' : 'dark');
+  document.getElementById('theme-icon-moon').style.display = isLight ? 'none' : '';
+  document.getElementById('theme-icon-sun').style.display  = isLight ? '' : 'none';
+  document.getElementById('theme-label').textContent = isLight ? 'Escuro' : 'Claro';
+}
+// Restaurar tema salvo
+(function() {
+  if (localStorage.getItem('ib_theme') === 'light') {
+    document.body.classList.add('light');
+    document.getElementById('theme-icon-moon').style.display = 'none';
+    document.getElementById('theme-icon-sun').style.display  = '';
+    document.getElementById('theme-label').textContent = 'Escuro';
+  }
+})();
 
 // Init
 refreshAll();
