@@ -1115,8 +1115,28 @@ function toggleTheme() {
   }
 })();
 
-// Init
-refreshAll();
+// ── Drag & Drop suporte ──
+const uploadArea = document.querySelector('.upload-area');
+if (uploadArea) {
+  uploadArea.addEventListener('dragover', e => {
+    e.preventDefault();
+    uploadArea.style.borderColor = 'var(--accent)';
+  });
+  uploadArea.addEventListener('dragleave', e => {
+    e.preventDefault();
+    uploadArea.style.borderColor = 'var(--card-border)';
+  });
+  uploadArea.addEventListener('drop', e => {
+    e.preventDefault();
+    uploadArea.style.borderColor = 'var(--card-border)';
+    const dt = e.dataTransfer;
+    if (dt && dt.files && dt.files.length) {
+      // Simula um event similar ao input change
+      importFile({ target: { files: dt.files } });
+    }
+  });
+}
+
 </script>
 </body>
 </html>
