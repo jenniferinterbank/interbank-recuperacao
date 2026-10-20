@@ -1,45 +1,1070 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8">
-  <title>Interbank – Login (Admin)</title>
-  <meta name="viewport" content="width=device-width,initial-scale=1">
-  <link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Interbank | Recuperação de Crédito</title>
+  <meta name="description" content="Cedentes, cobrança 10+ e negociações" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <style>
+    /* ── Reset & base ── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg: #0f1117;
+      --sidebar-bg: #13151c;
+      --sidebar-border: #1e2130;
+      --card-bg: #191c27;
+      --card-border: #252840;
+      --accent: #5b6bff;
+      --accent2: #7c3aed;
+      --text: #e8eaf6;
+      --muted: #6b7280;
+      --green: #22c55e;
+      --red: #ef4444;
+      --yellow: #f59e0b;
+      --sidebar-w: 230px;
+    }
+    body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--bg); color: var(--text); display: flex; min-height: 100vh; }
+
+    /* ── Sidebar ── */
+    aside {
+      width: var(--sidebar-w); min-width: var(--sidebar-w);
+      background: var(--sidebar-bg); border-right: 1px solid var(--sidebar-border);
+      display: flex; flex-direction: column; padding: 24px 0 16px; position: fixed;
+      top: 0; left: 0; height: 100vh; z-index: 100; overflow-y: auto;
+    }
+    .brand { font-size: 1.3rem; font-weight: 800; color: #fff; padding: 0 20px; letter-spacing: 1px; }
+    .brand span { color: var(--accent); }
+    .brand-sub { font-size: .65rem; color: var(--muted); padding: 2px 20px 20px; letter-spacing: 2px; text-transform: uppercase; }
+    .nav-label { font-size: .62rem; color: var(--muted); padding: 12px 20px 6px; letter-spacing: 2px; text-transform: uppercase; }
+    nav { display: flex; flex-direction: column; gap: 2px; padding: 0 8px; }
+    nav button {
+      display: flex; align-items: center; gap: 10px; padding: 10px 14px;
+      border: none; background: none; color: var(--muted); border-radius: 8px;
+      cursor: pointer; font-size: .875rem; text-align: left; width: 100%;
+      transition: background .15s, color .15s;
+    }
+    nav button:hover { background: rgba(91,107,255,.1); color: var(--text); }
+    nav button.selected { background: rgba(91,107,255,.18); color: var(--accent); font-weight: 600; }
+    nav button svg { flex-shrink: 0; }
+    .private {
+      margin: auto 20px 0; padding: 12px; border-radius: 10px;
+      background: rgba(91,107,255,.08); border: 1px solid var(--card-border);
+      display: flex; gap: 10px; align-items: flex-start; font-size: .78rem; color: var(--muted);
+    }
+    .private svg { flex-shrink: 0; margin-top: 2px; color: var(--green); }
+    .private small { display: block; font-size: .7rem; margin-top: 2px; }
+
+    /* ── Main ── */
+    .shell { display: flex; flex: 1; }
+    main { margin-left: var(--sidebar-w); flex: 1; display: flex; flex-direction: column; min-height: 100vh; }
+
+    /* ── Header ── */
+    header {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 14px 28px; border-bottom: 1px solid var(--sidebar-border);
+      background: var(--sidebar-bg); position: sticky; top: 0; z-index: 90;
+    }
+    header span { font-size: .85rem; color: var(--muted); }
+    header b { color: var(--text); }
+    .header-actions { display: flex; align-items: center; gap: 10px; }
+    .header-actions button, .header-actions .btn-primary {
+      padding: 7px 14px; border-radius: 7px; font-size: .8rem; cursor: pointer;
+      border: 1px solid var(--card-border); background: var(--card-bg); color: var(--text);
+      display: flex; align-items: center; gap: 6px; transition: background .15s;
+    }
+    .header-actions button:hover { background: #252840; }
+    .btn-primary { background: var(--accent) !important; border-color: var(--accent) !important; color: #fff !important; font-weight: 600; }
+    .btn-primary:hover { opacity: .88 !important; }
+
+    /* ── Sections ── */
+    .page { display: none; flex-direction: column; padding: 28px; gap: 24px; flex: 1; }
+    .page.active { display: flex; }
+
+    .heading { display: flex; justify-content: space-between; align-items: flex-start; }
+    .heading > div { display: flex; flex-direction: column; gap: 4px; }
+    .eyebrow { font-size: .65rem; color: var(--accent); letter-spacing: 2px; text-transform: uppercase; font-weight: 600; }
+    h1 { font-size: 1.7rem; font-weight: 700; color: #fff; }
+    h1 + p { color: var(--muted); font-size: .9rem; }
+
+    /* ── Stats ── */
+    .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; }
+    .stat {
+      background: var(--card-bg); border: 1px solid var(--card-border);
+      border-radius: 12px; padding: 20px; display: flex; flex-direction: column; gap: 6px;
+    }
+    .stat span { font-size: .8rem; color: var(--muted); }
+    .stat strong { font-size: 1.5rem; font-weight: 700; color: #fff; }
+    .stat small { font-size: .72rem; color: var(--muted); }
+
+    /* ── Dashboard grid ── */
+    .dashboard-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    .panel {
+      background: var(--card-bg); border: 1px solid var(--card-border);
+      border-radius: 12px; padding: 20px;
+    }
+    .panel-title { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
+    .panel-title h2 { font-size: 1rem; font-weight: 600; color: #fff; }
+    .panel-title button, .panel button.btn-sm {
+      font-size: .75rem; padding: 5px 10px; border-radius: 6px;
+      border: 1px solid var(--card-border); background: none; color: var(--muted);
+      cursor: pointer; display: flex; align-items: center; gap: 4px;
+    }
+    .panel-title button:hover { background: #252840; color: var(--text); }
+    .panel h2 { font-size: 1rem; font-weight: 600; color: #fff; margin-bottom: 6px; }
+    .muted { color: var(--muted); font-size: .82rem; }
+
+    /* ── Analyst bars ── */
+    .analyst { margin: 12px 0 4px; }
+    .analyst > div:first-child { display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; }
+    .analyst b { font-size: .85rem; color: var(--text); }
+    .analyst span { font-size: .82rem; color: var(--accent); font-weight: 600; }
+    .track { background: rgba(255,255,255,.06); border-radius: 99px; height: 6px; overflow: hidden; margin-bottom: 2px; }
+    .track i { display: block; height: 100%; background: var(--accent); border-radius: 99px; transition: width .4s; }
+    .analyst small { font-size: .7rem; color: var(--muted); }
+    .note { font-size: .7rem; color: var(--muted); margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--sidebar-border); line-height: 1.5; }
+
+    /* ── Banner ── */
+    .banner {
+      background: linear-gradient(135deg, rgba(91,107,255,.18), rgba(124,58,237,.18));
+      border: 1px solid rgba(91,107,255,.3); border-radius: 14px;
+      padding: 22px 24px; display: flex; align-items: center; gap: 18px;
+    }
+    .banner svg { color: var(--accent); flex-shrink: 0; }
+    .banner h2 { font-size: 1rem; font-weight: 600; color: #fff; margin-bottom: 4px; }
+    .banner p { font-size: .82rem; color: var(--muted); }
+    .banner > button {
+      margin-left: auto; padding: 9px 18px; background: var(--accent); color: #fff;
+      border: none; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: .85rem;
+      white-space: nowrap; flex-shrink: 0;
+    }
+    .banner > button:hover { opacity: .88; }
+
+    /* ── Charts ── */
+    .charts-heading h2 { font-size: 1.1rem; font-weight: 600; color: #fff; }
+    .charts-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 16px; }
+    .chart-panel { display: flex; flex-direction: column; gap: 4px; }
+    .chart-panel h2 { font-size: .9rem; }
+    .chart-percent-note { font-size: .68rem; color: #4b5563; }
+    .chart-empty { color: var(--muted); font-size: .8rem; padding: 30px 0; text-align: center; }
+    .chart-wrap { position: relative; height: 200px; margin-top: 12px; }
+
+    /* ── Footer ── */
+    footer {
+      text-align: center; padding: 16px; font-size: .75rem; color: var(--muted);
+      border-top: 1px solid var(--sidebar-border); margin-top: auto;
+    }
+    footer span { display: block; font-size: .68rem; margin-top: 2px; }
+
+    /* ── Table (Cobrança 10+, Cedentes, Negociações) ── */
+    .toolbar { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+    .toolbar input, .toolbar select {
+      padding: 8px 12px; border-radius: 7px;
+      border: 1px solid var(--card-border); background: var(--card-bg);
+      color: var(--text); font-size: .82rem; outline: none;
+    }
+    .toolbar input { flex: 1; min-width: 180px; }
+    .toolbar input:focus, .toolbar select:focus { border-color: var(--accent); }
+    .btn { padding: 8px 16px; border-radius: 7px; font-size: .82rem; cursor: pointer; border: none; font-weight: 600; }
+    .btn-add { background: var(--accent); color: #fff; }
+    .btn-add:hover { opacity: .88; }
+    .btn-del { background: var(--red); color: #fff; font-size: .75rem; padding: 4px 10px; border-radius: 5px; }
+    .btn-edit { background: var(--accent); color: #fff; font-size: .75rem; padding: 4px 10px; border-radius: 5px; margin-right: 4px; }
+    .btn-export { background: var(--card-bg); border: 1px solid var(--card-border); color: var(--text); }
+    .btn-export:hover { background: #252840; }
+
+    .table-wrap { overflow-x: auto; border-radius: 12px; border: 1px solid var(--card-border); }
+    table { width: 100%; border-collapse: collapse; font-size: .82rem; }
+    thead th {
+      background: #141624; color: var(--muted); font-weight: 600;
+      padding: 12px 14px; text-align: left; white-space: nowrap;
+      border-bottom: 1px solid var(--card-border); font-size: .75rem; text-transform: uppercase; letter-spacing: .5px;
+    }
+    tbody tr { border-bottom: 1px solid rgba(255,255,255,.04); transition: background .12s; }
+    tbody tr:hover { background: rgba(91,107,255,.05); }
+    tbody td { padding: 11px 14px; color: var(--text); vertical-align: middle; }
+    .badge {
+      display: inline-block; padding: 2px 9px; border-radius: 99px;
+      font-size: .7rem; font-weight: 600; white-space: nowrap;
+    }
+    .badge-pago { background: rgba(34,197,94,.15); color: var(--green); }
+    .badge-atraso { background: rgba(239,68,68,.15); color: var(--red); }
+    .badge-negociando { background: rgba(245,158,11,.15); color: var(--yellow); }
+    .badge-pendente { background: rgba(107,114,128,.15); color: var(--muted); }
+    .badge-protestado { background: rgba(124,58,237,.15); color: #a78bfa; }
+    .empty-state { text-align: center; padding: 40px; color: var(--muted); font-size: .85rem; }
+
+    /* ── Modal ── */
+    .modal-overlay {
+      display: none; position: fixed; inset: 0;
+      background: rgba(0,0,0,.65); z-index: 200; align-items: center; justify-content: center;
+    }
+    .modal-overlay.open { display: flex; }
+    .modal {
+      background: var(--card-bg); border: 1px solid var(--card-border);
+      border-radius: 14px; padding: 28px; width: 100%; max-width: 520px;
+      max-height: 90vh; overflow-y: auto;
+    }
+    .modal h3 { font-size: 1rem; font-weight: 700; color: #fff; margin-bottom: 18px; }
+    .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .form-group { display: flex; flex-direction: column; gap: 5px; }
+    .form-group.full { grid-column: 1 / -1; }
+    label.lbl { font-size: .75rem; color: var(--muted); font-weight: 600; }
+    .form-group input, .form-group select, .form-group textarea {
+      padding: 9px 12px; border-radius: 7px; border: 1px solid var(--card-border);
+      background: #0f1117; color: var(--text); font-size: .85rem; outline: none;
+    }
+    .form-group input:focus, .form-group select:focus, .form-group textarea:focus { border-color: var(--accent); }
+    .form-group textarea { resize: vertical; min-height: 70px; font-family: inherit; }
+    .modal-footer { display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px; }
+    .btn-cancel { background: none; border: 1px solid var(--card-border); color: var(--muted); padding: 8px 16px; border-radius: 7px; cursor: pointer; }
+    .btn-save { background: var(--accent); color: #fff; padding: 8px 20px; border-radius: 7px; cursor: pointer; font-weight: 600; border: none; }
+
+    /* ── Planilhas ── */
+    .upload-area {
+      border: 2px dashed var(--card-border); border-radius: 12px;
+      padding: 40px; text-align: center; color: var(--muted); font-size: .85rem;
+    }
+    .upload-area input { display: none; }
+    .upload-area label { cursor: pointer; color: var(--accent); font-weight: 600; }
+
+    /* ── Responsive ── */
+    @media(max-width:768px) {
+      aside { transform: translateX(-100%); transition: transform .25s; }
+      aside.open { transform: none; }
+      main { margin-left: 0; }
+      .dashboard-grid { grid-template-columns: 1fr; }
+      .form-grid { grid-template-columns: 1fr; }
+      .menu-toggle { display: flex !important; }
+    }
+    .menu-toggle {
+      display: none; align-items: center; justify-content: center;
+      padding: 6px 10px; background: var(--card-bg); border: 1px solid var(--card-border);
+      border-radius: 7px; cursor: pointer; color: var(--text);
+    }
+  </style>
 </head>
 <body>
-  <main class="center">
-    <h1>Interbank – Admin</h1>
-    <form id="loginForm">
-      <label>
-        Usuário (admin)
-        <input type="text" id="user" required placeholder="admin">
-      </label>
-      <label>
-        Senha
-        <input type="password" id="pass" required placeholder="123">
-      </label>
-      <button type="submit">Entrar</button>
-    </form>
-    <p id="msg" class="msg"></p>
+<div class="shell">
+
+  <!-- ── Sidebar ── -->
+  <aside id="sidebar">
+    <div class="brand">LS<span>INTERBANK</span></div>
+    <div class="brand-sub">Recuperação de Crédito</div>
+    <div class="nav-label">Área de Trabalho</div>
+    <nav>
+      <button class="selected" onclick="showPage('visao-geral', this)">
+        <svg xmlns="http://www.w3.org/2000/svg" width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="7" height="9" x="3" y="3" rx="1"/><rect width="7" height="5" x="14" y="3" rx="1"/><rect width="7" height="9" x="14" y="12" rx="1"/><rect width="7" height="5" x="3" y="16" rx="1"/></svg>
+        Visão geral
+      </button>
+      <button onclick="showPage('cobranca', this)">
+        <svg xmlns="http://www.w3.org/2000/svg" width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M13 2a9 9 0 0 1 9 9"/><path d="M13 6a5 5 0 0 1 5 5"/><path d="M13.832 16.568a1 1 0 0 0 1.213-.303l.355-.465A2 2 0 0 1 17 15h3a2 2 0 0 1 2 2v3a2 2 0 0 1-2 2A18 18 0 0 1 2 4a2 2 0 0 1 2-2h3a2 2 0 0 1 2 2v3a2 2 0 0 1-.8 1.6l-.468.351a1 1 0 0 0-.292 1.233 14 14 0 0 0 6.392 6.384"/></svg>
+        Cobrança 10+
+      </button>
+      <button onclick="showPage('cedentes', this)">
+        <svg xmlns="http://www.w3.org/2000/svg" width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 12h4"/><path d="M10 8h4"/><path d="M14 21v-3a2 2 0 0 0-4 0v3"/><path d="M6 10H4a2 2 0 0 0-2 2v7a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-2"/><path d="M6 21V5a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v16"/></svg>
+        Controle de cedentes
+      </button>
+      <button onclick="showPage('negociacoes', this)">
+        <svg xmlns="http://www.w3.org/2000/svg" width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m11 17 2 2a1 1 0 1 0 3-3"/><path d="m14 14 2.5 2.5a1 1 0 1 0 3-3l-3.88-3.88a3 3 0 0 0-4.24 0l-.88.88a1 1 0 1 1-3-3l2.81-2.81a5.79 5.79 0 0 1 7.06-.87l.47.28a2 2 0 0 0 1.42.25L21 4"/><path d="m21 3 1 11h-2"/><path d="M3 3 2 14l6.5 6.5a1 1 0 1 0 3-3"/><path d="M3 4h8"/></svg>
+        Negociações
+      </button>
+      <button onclick="showPage('planilhas', this)">
+        <svg xmlns="http://www.w3.org/2000/svg" width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 22a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h8a2.4 2.4 0 0 1 1.704.706l3.588 3.588A2.4 2.4 0 0 1 20 8v12a2 2 0 0 1-2 2z"/><path d="M14 2v5a1 1 0 0 0 1 1h5"/><path d="M8 13h2"/><path d="M14 13h2"/><path d="M8 17h2"/><path d="M14 17h2"/></svg>
+        Planilhas de origem
+      </button>
+    </nav>
+    <div class="private">
+      <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/><path d="m9 12 2 2 4-4"/></svg>
+      <div>Modo livre<small>Dados salvos localmente</small></div>
+    </div>
+  </aside>
+
+  <!-- ── Main ── -->
+  <main>
+    <header>
+      <div style="display:flex;align-items:center;gap:12px;">
+        <button class="menu-toggle" onclick="document.getElementById('sidebar').classList.toggle('open')">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+        </button>
+        <span id="breadcrumb">Gestão da carteira / <b>Visão geral</b></span>
+      </div>
+      <div class="header-actions">
+        <button onclick="refreshAll()">
+          <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/><path d="M8 16H3v5"/></svg>
+          Atualizar
+        </button>
+      </div>
+    </header>
+
+    <!-- ══════════════════════════════
+         PÁGINA: VISÃO GERAL
+    ══════════════════════════════ -->
+    <div class="page active" id="page-visao-geral">
+      <section class="heading">
+        <div>
+          <div class="eyebrow">Controle Operacional</div>
+          <h1>Visão geral</h1>
+          <p>Sua carteira, suas prioridades. Tudo em um só lugar.</p>
+        </div>
+      </section>
+
+      <div class="stats" id="statsCards">
+        <article class="stat">
+          <span>Carteira de cobrança</span>
+          <strong id="stat-total">R$ 0,00</strong>
+          <small id="stat-total-reg">0 registros importados</small>
+        </article>
+        <article class="stat">
+          <span>Saldo em acompanhamento</span>
+          <strong id="stat-saldo">R$ 0,00</strong>
+          <small id="stat-saldo-reg">0 registros sem status Pago</small>
+        </article>
+        <article class="stat">
+          <span>Cedentes / protestos</span>
+          <strong id="stat-cedentes">0</strong>
+          <small>Inclui controle Recuperi São Paulo</small>
+        </article>
+        <article class="stat">
+          <span>Negociações abertas</span>
+          <strong id="stat-neg">0</strong>
+          <small>Acordos e propostas em andamento</small>
+        </article>
+      </div>
+
+      <div class="dashboard-grid">
+        <article class="panel">
+          <div class="panel-title">
+            <h2>Prioridades de cobrança</h2>
+            <button onclick="showPage('cobranca', document.querySelector('nav button:nth-child(2)'))">
+              Ver carteira
+              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 7h10v10"/><path d="M7 17 17 7"/></svg>
+            </button>
+          </div>
+          <p class="muted" style="margin-bottom:12px;">Maiores valores em acompanhamento</p>
+          <div id="prioridades-list"><p class="chart-empty">Nenhum registro ainda. Adicione cobranças.</p></div>
+        </article>
+
+        <article class="panel">
+          <h2>Distribuição por analista</h2>
+          <p class="muted">Valor total dos registros de cobrança</p>
+          <div id="analistas-panel"></div>
+          <div class="note">A meta de 3 ligações considera os campos preenchidos de cada registro, na data da cobrança. Os valores não representam saldo contábil conciliado.</div>
+        </article>
+      </div>
+
+      <div class="banner">
+        <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m11 17 2 2a1 1 0 1 0 3-3"/><path d="m14 14 2.5 2.5a1 1 0 1 0 3-3l-3.88-3.88a3 3 0 0 0-4.24 0l-.88.88a1 1 0 1 1-3-3l2.81-2.81a5.79 5.79 0 0 1 7.06-.87l.47.28a2 2 0 0 0 1.42.25L21 4"/><path d="m21 3 1 11h-2"/><path d="M3 3 2 14l6.5 6.5a1 1 0 1 0 3-3"/><path d="M3 4h8"/></svg>
+        <div>
+          <h2>Uma negociação precisa de acompanhamento.</h2>
+          <p>Registre valor, entrada, parcelas, previsão e evolução dos recebimentos.</p>
+        </div>
+        <button onclick="showPage('negociacoes', document.querySelector('nav button:nth-child(4)'))">Abrir negociações →</button>
+      </div>
+
+      <div class="charts-heading">
+        <h2>Indicadores da carteira</h2>
+        <p class="muted">Visão consolidada dos registros salvos.</p>
+      </div>
+
+      <section class="charts-grid">
+        <article class="panel chart-panel">
+          <h2>Cobranças por status</h2>
+          <p class="muted">Quantidade de registros da seleção</p>
+          <p class="chart-percent-note">Percentuais sobre o total da seleção deste gráfico.</p>
+          <div class="chart-wrap"><canvas id="chart-status"></canvas></div>
+        </article>
+        <article class="panel chart-panel">
+          <h2>Valores por faixa de atraso</h2>
+          <p class="muted">Sem status Pago ou Liquidado · atraso atualizado hoje</p>
+          <p class="chart-percent-note">Percentuais sobre o total da seleção deste gráfico.</p>
+          <div class="chart-wrap"><canvas id="chart-atraso"></canvas></div>
+        </article>
+        <article class="panel chart-panel">
+          <h2>Carteira por analista</h2>
+          <p class="muted">Valor total dos registros da seleção</p>
+          <p class="chart-percent-note">Percentuais sobre o total da seleção deste gráfico.</p>
+          <div class="chart-wrap"><canvas id="chart-analista"></canvas></div>
+        </article>
+        <article class="panel chart-panel">
+          <h2>Meta de ligações</h2>
+          <p class="muted">3 resultados preenchidos por registro · na data da cobrança</p>
+          <p class="chart-percent-note">Percentuais sobre o total da seleção deste gráfico.</p>
+          <div class="chart-wrap"><canvas id="chart-ligacoes"></canvas></div>
+        </article>
+        <article class="panel chart-panel">
+          <h2>Situação dos protestos</h2>
+          <p class="muted">Quantidade de registros · inclui Recuperi</p>
+          <p class="chart-percent-note">Percentuais sobre o total da seleção deste gráfico.</p>
+          <div class="chart-wrap"><canvas id="chart-protestos"></canvas></div>
+        </article>
+        <article class="panel chart-panel">
+          <h2>Valores efetivamente protestados</h2>
+          <p class="muted">Campos preenchidos de valor protestado, por situação</p>
+          <p class="chart-percent-note">Percentuais sobre o valor total negociado.</p>
+          <div class="chart-wrap"><canvas id="chart-val-protestados"></canvas></div>
+        </article>
+        <article class="panel chart-panel">
+          <h2>Evolução das negociações</h2>
+          <p class="muted">Quantidade de registros por status</p>
+          <p class="chart-percent-note">Percentuais sobre o total da seleção deste gráfico.</p>
+          <div class="chart-wrap"><canvas id="chart-neg-evolucao"></canvas></div>
+        </article>
+        <article class="panel chart-panel">
+          <h2>Negociado e recebido</h2>
+          <p class="muted">Valores acumulados informados nos acordos</p>
+          <p class="chart-percent-note">Percentuais sobre o valor total negociado.</p>
+          <div class="chart-wrap"><canvas id="chart-neg-recebido"></canvas></div>
+        </article>
+      </section>
+
+      <footer>LS INTERBANK · Recuperação de Crédito <span>Atualização de dados mediante registro da equipe</span></footer>
+    </div>
+
+    <!-- ══════════════════════════════
+         PÁGINA: COBRANÇA 10+
+    ══════════════════════════════ -->
+    <div class="page" id="page-cobranca">
+      <section class="heading">
+        <div>
+          <div class="eyebrow">Operacional</div>
+          <h1>Cobrança 10+</h1>
+          <p>Registros com 10 ou mais dias de atraso em acompanhamento ativo.</p>
+        </div>
+      </section>
+      <div class="toolbar">
+        <input type="text" id="busca-cobranca" placeholder="Buscar por nome, CPF/CNPJ..." oninput="renderCobranca()" />
+        <select id="filtro-analista-cob" onchange="renderCobranca()">
+          <option value="">Todos os analistas</option>
+          <option>Jennifer</option><option>Micael</option><option>Queila</option><option>Thais</option>
+        </select>
+        <select id="filtro-status-cob" onchange="renderCobranca()">
+          <option value="">Todos os status</option>
+          <option>Pendente</option><option>Negociando</option><option>Pago</option><option>Atraso</option><option>Protestado</option>
+        </select>
+        <button class="btn btn-export" onclick="exportCSV('cobranca')">⬇ Exportar CSV</button>
+        <button class="btn btn-add" onclick="openModal('cobranca')">+ Adicionar</button>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Cliente</th><th>CPF/CNPJ</th><th>Analista</th><th>Valor (R$)</th>
+              <th>Vencimento</th><th>Atraso</th><th>Status</th><th>Observação</th><th>Ações</th>
+            </tr>
+          </thead>
+          <tbody id="tbody-cobranca"></tbody>
+        </table>
+      </div>
+      <div id="empty-cobranca" class="empty-state" style="display:none;">Nenhum registro encontrado. Clique em "+ Adicionar" para começar.</div>
+      <footer>LS INTERBANK · Recuperação de Crédito <span>Atualização de dados mediante registro da equipe</span></footer>
+    </div>
+
+    <!-- ══════════════════════════════
+         PÁGINA: CEDENTES
+    ══════════════════════════════ -->
+    <div class="page" id="page-cedentes">
+      <section class="heading">
+        <div>
+          <div class="eyebrow">Controle</div>
+          <h1>Controle de cedentes</h1>
+          <p>Cedentes e protestos — inclui controle Recuperi São Paulo.</p>
+        </div>
+      </section>
+      <div class="toolbar">
+        <input type="text" id="busca-cedentes" placeholder="Buscar por empresa, CNPJ..." oninput="renderCedentes()" />
+        <select id="filtro-status-ced" onchange="renderCedentes()">
+          <option value="">Todas as situações</option>
+          <option>Ativo</option><option>Em protesto</option><option>Recuperi</option><option>Encerrado</option>
+        </select>
+        <button class="btn btn-export" onclick="exportCSV('cedentes')">⬇ Exportar CSV</button>
+        <button class="btn btn-add" onclick="openModal('cedentes')">+ Adicionar cedente</button>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Empresa / Cedente</th><th>CNPJ</th><th>Contato</th><th>Valor Protestado (R$)</th>
+              <th>Data de Protesto</th><th>Situação</th><th>Observação</th><th>Ações</th>
+            </tr>
+          </thead>
+          <tbody id="tbody-cedentes"></tbody>
+        </table>
+      </div>
+      <div id="empty-cedentes" class="empty-state" style="display:none;">Nenhum cedente encontrado.</div>
+      <footer>LS INTERBANK · Recuperação de Crédito <span>Atualização de dados mediante registro da equipe</span></footer>
+    </div>
+
+    <!-- ══════════════════════════════
+         PÁGINA: NEGOCIAÇÕES
+    ══════════════════════════════ -->
+    <div class="page" id="page-negociacoes">
+      <section class="heading">
+        <div>
+          <div class="eyebrow">Acordos</div>
+          <h1>Negociações</h1>
+          <p>Registre valor, entrada, parcelas, previsão e evolução dos recebimentos.</p>
+        </div>
+      </section>
+      <div class="toolbar">
+        <input type="text" id="busca-neg" placeholder="Buscar por cliente..." oninput="renderNeg()" />
+        <select id="filtro-status-neg" onchange="renderNeg()">
+          <option value="">Todos os status</option>
+          <option>Em andamento</option><option>Concluído</option><option>Inadimplente</option><option>Cancelado</option>
+        </select>
+        <button class="btn btn-export" onclick="exportCSV('negociacoes')">⬇ Exportar CSV</button>
+        <button class="btn btn-add" onclick="openModal('negociacoes')">+ Nova negociação</button>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Cliente</th><th>Analista</th><th>Valor Negociado (R$)</th><th>Entrada (R$)</th>
+              <th>Parcelas</th><th>Valor Recebido (R$)</th><th>Previsão</th><th>Status</th><th>Observação</th><th>Ações</th>
+            </tr>
+          </thead>
+          <tbody id="tbody-neg"></tbody>
+        </table>
+      </div>
+      <div id="empty-neg" class="empty-state" style="display:none;">Nenhuma negociação encontrada.</div>
+      <footer>LS INTERBANK · Recuperação de Crédito <span>Atualização de dados mediante registro da equipe</span></footer>
+    </div>
+
+    <!-- ══════════════════════════════
+         PÁGINA: PLANILHAS
+    ══════════════════════════════ -->
+    <div class="page" id="page-planilhas">
+      <section class="heading">
+        <div>
+          <div class="eyebrow">Importação</div>
+          <h1>Planilhas de origem</h1>
+          <p>Importe arquivos CSV para popular a carteira de cobrança.</p>
+        </div>
+      </section>
+
+      <div class="upload-area">
+        <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom:12px;color:var(--muted)"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+        <p style="margin-bottom:8px;">Arraste um arquivo CSV aqui ou</p>
+        <label for="csv-upload" class="btn btn-add" style="display:inline-block;padding:8px 18px;border-radius:7px;cursor:pointer;">
+          Selecionar arquivo
+        </label>
+        <input type="file" id="csv-upload" accept=".csv" onchange="importCSV(event)" />
+        <p style="margin-top:12px;font-size:.72rem;">Colunas esperadas: <code>cliente, cpf_cnpj, analista, valor, vencimento, status, observacao</code></p>
+      </div>
+
+      <article class="panel">
+        <h2 style="margin-bottom:12px;">Registros importados</h2>
+        <div id="import-log" class="muted" style="font-size:.8rem;">Nenhuma importação realizada ainda.</div>
+      </article>
+      <footer>LS INTERBANK · Recuperação de Crédito <span>Atualização de dados mediante registro da equipe</span></footer>
+    </div>
   </main>
+</div>
 
-  <script>
-    const form = document.getElementById('loginForm');
-    const msg = document.getElementById('msg');
+<!-- ══════════════════════════════
+     MODAIS
+══════════════════════════════ -->
 
-    form.addEventListener('submit', (e) => {
-      e.preventDefault();
-      const user = document.getElementById('user').value.trim();
-      const pass = document.getElementById('pass').value;
+<!-- Modal Cobrança -->
+<div class="modal-overlay" id="modal-cobranca">
+  <div class="modal">
+    <h3 id="modal-cob-title">Novo registro de cobrança</h3>
+    <div class="form-grid">
+      <div class="form-group full"><label class="lbl">Cliente *</label><input id="cob-cliente" placeholder="Nome completo ou razão social" /></div>
+      <div class="form-group"><label class="lbl">CPF / CNPJ</label><input id="cob-cpf" placeholder="000.000.000-00" /></div>
+      <div class="form-group"><label class="lbl">Analista *</label>
+        <select id="cob-analista"><option value="">Selecione</option><option>Jennifer</option><option>Micael</option><option>Queila</option><option>Thais</option></select>
+      </div>
+      <div class="form-group"><label class="lbl">Valor (R$) *</label><input id="cob-valor" type="number" min="0" step="0.01" placeholder="0,00" /></div>
+      <div class="form-group"><label class="lbl">Vencimento</label><input id="cob-vencimento" type="date" /></div>
+      <div class="form-group"><label class="lbl">Status</label>
+        <select id="cob-status"><option>Pendente</option><option>Negociando</option><option>Pago</option><option>Atraso</option><option>Protestado</option></select>
+      </div>
+      <div class="form-group full"><label class="lbl">Observação</label><textarea id="cob-obs" placeholder="Informações adicionais..."></textarea></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-cancel" onclick="closeModal('cobranca')">Cancelar</button>
+      <button class="btn-save" onclick="saveCobranca()">Salvar</button>
+    </div>
+  </div>
+</div>
 
-      if (user === 'admin' && pass === '123') {
-        msg.textContent = 'Bem‑vindo, admin!';
-        msg.style.color = 'green';
-      } else {
-        msg.textContent = 'Credenciais inválidas.';
-        msg.style.color = 'red';
-      }
+<!-- Modal Cedentes -->
+<div class="modal-overlay" id="modal-cedentes">
+  <div class="modal">
+    <h3 id="modal-ced-title">Novo cedente</h3>
+    <div class="form-grid">
+      <div class="form-group full"><label class="lbl">Empresa / Cedente *</label><input id="ced-empresa" placeholder="Nome da empresa" /></div>
+      <div class="form-group"><label class="lbl">CNPJ</label><input id="ced-cnpj" placeholder="00.000.000/0000-00" /></div>
+      <div class="form-group"><label class="lbl">Contato</label><input id="ced-contato" placeholder="Telefone ou e-mail" /></div>
+      <div class="form-group"><label class="lbl">Valor Protestado (R$)</label><input id="ced-valor" type="number" min="0" step="0.01" placeholder="0,00" /></div>
+      <div class="form-group"><label class="lbl">Data de Protesto</label><input id="ced-data" type="date" /></div>
+      <div class="form-group"><label class="lbl">Situação</label>
+        <select id="ced-situacao"><option>Ativo</option><option>Em protesto</option><option>Recuperi</option><option>Encerrado</option></select>
+      </div>
+      <div class="form-group full"><label class="lbl">Observação</label><textarea id="ced-obs" placeholder="Informações adicionais..."></textarea></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-cancel" onclick="closeModal('cedentes')">Cancelar</button>
+      <button class="btn-save" onclick="saveCedente()">Salvar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Negociações -->
+<div class="modal-overlay" id="modal-negociacoes">
+  <div class="modal">
+    <h3 id="modal-neg-title">Nova negociação</h3>
+    <div class="form-grid">
+      <div class="form-group full"><label class="lbl">Cliente *</label><input id="neg-cliente" placeholder="Nome completo ou razão social" /></div>
+      <div class="form-group"><label class="lbl">Analista</label>
+        <select id="neg-analista"><option value="">Selecione</option><option>Jennifer</option><option>Micael</option><option>Queila</option><option>Thais</option></select>
+      </div>
+      <div class="form-group"><label class="lbl">Valor Negociado (R$)</label><input id="neg-valor" type="number" min="0" step="0.01" placeholder="0,00" /></div>
+      <div class="form-group"><label class="lbl">Entrada (R$)</label><input id="neg-entrada" type="number" min="0" step="0.01" placeholder="0,00" /></div>
+      <div class="form-group"><label class="lbl">Parcelas</label><input id="neg-parcelas" type="number" min="1" placeholder="Ex: 6" /></div>
+      <div class="form-group"><label class="lbl">Valor Recebido (R$)</label><input id="neg-recebido" type="number" min="0" step="0.01" placeholder="0,00" /></div>
+      <div class="form-group"><label class="lbl">Previsão de Encerramento</label><input id="neg-previsao" type="date" /></div>
+      <div class="form-group"><label class="lbl">Status</label>
+        <select id="neg-status"><option>Em andamento</option><option>Concluído</option><option>Inadimplente</option><option>Cancelado</option></select>
+      </div>
+      <div class="form-group full"><label class="lbl">Observação</label><textarea id="neg-obs" placeholder="Informações adicionais..."></textarea></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-cancel" onclick="closeModal('negociacoes')">Cancelar</button>
+      <button class="btn-save" onclick="saveNeg()">Salvar</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ══════════════════════════════════════
+// DADOS (localStorage)
+// ══════════════════════════════════════
+const KEYS = { cobranca: 'ib_cobranca', cedentes: 'ib_cedentes', negociacoes: 'ib_negociacoes' };
+let editIdx = { cobranca: null, cedentes: null, negociacoes: null };
+
+function load(k) { try { return JSON.parse(localStorage.getItem(KEYS[k])) || []; } catch { return []; } }
+function save(k, arr) { localStorage.setItem(KEYS[k], JSON.stringify(arr)); }
+function fmtBRL(v) { return Number(v||0).toLocaleString('pt-BR',{style:'currency',currency:'BRL'}); }
+function fmtDate(d) { if(!d) return '—'; const [y,m,di]=d.split('-'); return `${di}/${m}/${y}`; }
+function diasAtraso(dt) {
+  if(!dt) return '—';
+  const diff = Math.floor((Date.now()-new Date(dt+'T00:00:00'))/(86400000));
+  return diff>0 ? `${diff}d` : '0d';
+}
+function badge(status) {
+  const m = {
+    'Pago':'badge-pago','Liquidado':'badge-pago','Negociando':'badge-negociando',
+    'Em andamento':'badge-negociando','Concluído':'badge-pago','Atraso':'badge-atraso',
+    'Inadimplente':'badge-atraso','Pendente':'badge-pendente','Cancelado':'badge-pendente',
+    'Protestado':'badge-protestado','Em protesto':'badge-protestado','Recuperi':'badge-protestado',
+    'Ativo':'badge-pago','Encerrado':'badge-pendente'
+  };
+  return `<span class="badge ${m[status]||'badge-pendente'}">${status}</span>`;
+}
+
+// ══════════════════════════════════════
+// NAVEGAÇÃO
+// ══════════════════════════════════════
+const breadcrumbs = {
+  'visao-geral': 'Gestão da carteira / <b>Visão geral</b>',
+  'cobranca': 'Gestão da carteira / <b>Cobrança 10+</b>',
+  'cedentes': 'Gestão da carteira / <b>Controle de cedentes</b>',
+  'negociacoes': 'Gestão da carteira / <b>Negociações</b>',
+  'planilhas': 'Gestão da carteira / <b>Planilhas de origem</b>'
+};
+function showPage(id, btn) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.getElementById('page-'+id).classList.add('active');
+  document.querySelectorAll('nav button').forEach(b => b.classList.remove('selected'));
+  if (btn) btn.classList.add('selected');
+  document.getElementById('breadcrumb').innerHTML = breadcrumbs[id] || '';
+  document.getElementById('sidebar').classList.remove('open');
+  refreshAll();
+}
+
+// ══════════════════════════════════════
+// COBRANÇA
+// ══════════════════════════════════════
+function renderCobranca() {
+  const arr = load('cobranca');
+  const busca = document.getElementById('busca-cobranca').value.toLowerCase();
+  const analista = document.getElementById('filtro-analista-cob').value;
+  const status = document.getElementById('filtro-status-cob').value;
+  const tbody = document.getElementById('tbody-cobranca');
+  const empty = document.getElementById('empty-cobranca');
+  const filtered = arr.filter(r =>
+    (!busca || r.cliente.toLowerCase().includes(busca) || (r.cpf||'').toLowerCase().includes(busca)) &&
+    (!analista || r.analista === analista) &&
+    (!status || r.status === status)
+  );
+  if (filtered.length === 0) { tbody.innerHTML=''; empty.style.display='block'; return; }
+  empty.style.display='none';
+  tbody.innerHTML = filtered.map((r,i) => {
+    const origIdx = arr.indexOf(r);
+    return `<tr>
+      <td>${r.cliente}</td><td>${r.cpf||'—'}</td><td>${r.analista||'—'}</td>
+      <td>${fmtBRL(r.valor)}</td><td>${fmtDate(r.vencimento)}</td>
+      <td>${diasAtraso(r.vencimento)}</td><td>${badge(r.status)}</td>
+      <td style="max-width:160px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;" title="${r.obs||''}">${r.obs||'—'}</td>
+      <td>
+        <button class="btn-edit" onclick="editCobranca(${origIdx})">Editar</button>
+        <button class="btn-del" onclick="delCobranca(${origIdx})">Excluir</button>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+function openModal(type) {
+  editIdx[type] = null;
+  if (type==='cobranca') {
+    document.getElementById('modal-cob-title').textContent='Novo registro de cobrança';
+    ['cob-cliente','cob-cpf','cob-valor','cob-obs'].forEach(id=>document.getElementById(id).value='');
+    document.getElementById('cob-vencimento').value='';
+    document.getElementById('cob-analista').value='';
+    document.getElementById('cob-status').value='Pendente';
+  } else if (type==='cedentes') {
+    document.getElementById('modal-ced-title').textContent='Novo cedente';
+    ['ced-empresa','ced-cnpj','ced-contato','ced-valor','ced-obs'].forEach(id=>document.getElementById(id).value='');
+    document.getElementById('ced-data').value='';
+    document.getElementById('ced-situacao').value='Ativo';
+  } else if (type==='negociacoes') {
+    document.getElementById('modal-neg-title').textContent='Nova negociação';
+    ['neg-cliente','neg-valor','neg-entrada','neg-parcelas','neg-recebido','neg-obs'].forEach(id=>document.getElementById(id).value='');
+    document.getElementById('neg-previsao').value='';
+    document.getElementById('neg-analista').value='';
+    document.getElementById('neg-status').value='Em andamento';
+  }
+  document.getElementById('modal-'+type).classList.add('open');
+}
+function closeModal(type) { document.getElementById('modal-'+type).classList.remove('open'); }
+
+function editCobranca(i) {
+  const arr = load('cobranca'); const r = arr[i];
+  editIdx.cobranca = i;
+  document.getElementById('modal-cob-title').textContent='Editar registro';
+  document.getElementById('cob-cliente').value = r.cliente;
+  document.getElementById('cob-cpf').value = r.cpf||'';
+  document.getElementById('cob-analista').value = r.analista||'';
+  document.getElementById('cob-valor').value = r.valor||'';
+  document.getElementById('cob-vencimento').value = r.vencimento||'';
+  document.getElementById('cob-status').value = r.status;
+  document.getElementById('cob-obs').value = r.obs||'';
+  document.getElementById('modal-cobranca').classList.add('open');
+}
+function delCobranca(i) {
+  if (!confirm('Excluir este registro?')) return;
+  const arr = load('cobranca'); arr.splice(i,1); save('cobranca',arr); refreshAll();
+}
+function saveCobranca() {
+  const cliente = document.getElementById('cob-cliente').value.trim();
+  if (!cliente) { alert('Informe o nome do cliente.'); return; }
+  const reg = {
+    cliente, cpf: document.getElementById('cob-cpf').value.trim(),
+    analista: document.getElementById('cob-analista').value,
+    valor: parseFloat(document.getElementById('cob-valor').value)||0,
+    vencimento: document.getElementById('cob-vencimento').value,
+    status: document.getElementById('cob-status').value,
+    obs: document.getElementById('cob-obs').value.trim()
+  };
+  const arr = load('cobranca');
+  if (editIdx.cobranca !== null) arr[editIdx.cobranca]=reg; else arr.push(reg);
+  save('cobranca',arr); closeModal('cobranca'); refreshAll();
+}
+
+// ══════════════════════════════════════
+// CEDENTES
+// ══════════════════════════════════════
+function renderCedentes() {
+  const arr = load('cedentes');
+  const busca = document.getElementById('busca-cedentes').value.toLowerCase();
+  const status = document.getElementById('filtro-status-ced').value;
+  const tbody = document.getElementById('tbody-cedentes');
+  const empty = document.getElementById('empty-cedentes');
+  const filtered = arr.filter(r =>
+    (!busca || r.empresa.toLowerCase().includes(busca) || (r.cnpj||'').includes(busca)) &&
+    (!status || r.situacao === status)
+  );
+  if (!filtered.length) { tbody.innerHTML=''; empty.style.display='block'; return; }
+  empty.style.display='none';
+  tbody.innerHTML = filtered.map((r) => {
+    const origIdx = arr.indexOf(r);
+    return `<tr>
+      <td>${r.empresa}</td><td>${r.cnpj||'—'}</td><td>${r.contato||'—'}</td>
+      <td>${fmtBRL(r.valor)}</td><td>${fmtDate(r.data)}</td>
+      <td>${badge(r.situacao)}</td>
+      <td style="max-width:160px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;" title="${r.obs||''}">${r.obs||'—'}</td>
+      <td>
+        <button class="btn-edit" onclick="editCedente(${origIdx})">Editar</button>
+        <button class="btn-del" onclick="delCedente(${origIdx})">Excluir</button>
+      </td>
+    </tr>`;
+  }).join('');
+}
+function editCedente(i) {
+  const arr = load('cedentes'); const r = arr[i];
+  editIdx.cedentes = i;
+  document.getElementById('modal-ced-title').textContent='Editar cedente';
+  document.getElementById('ced-empresa').value=r.empresa;
+  document.getElementById('ced-cnpj').value=r.cnpj||'';
+  document.getElementById('ced-contato').value=r.contato||'';
+  document.getElementById('ced-valor').value=r.valor||'';
+  document.getElementById('ced-data').value=r.data||'';
+  document.getElementById('ced-situacao').value=r.situacao;
+  document.getElementById('ced-obs').value=r.obs||'';
+  document.getElementById('modal-cedentes').classList.add('open');
+}
+function delCedente(i) {
+  if (!confirm('Excluir este cedente?')) return;
+  const arr = load('cedentes'); arr.splice(i,1); save('cedentes',arr); refreshAll();
+}
+function saveCedente() {
+  const empresa = document.getElementById('ced-empresa').value.trim();
+  if (!empresa) { alert('Informe o nome da empresa.'); return; }
+  const reg = {
+    empresa, cnpj: document.getElementById('ced-cnpj').value.trim(),
+    contato: document.getElementById('ced-contato').value.trim(),
+    valor: parseFloat(document.getElementById('ced-valor').value)||0,
+    data: document.getElementById('ced-data').value,
+    situacao: document.getElementById('ced-situacao').value,
+    obs: document.getElementById('ced-obs').value.trim()
+  };
+  const arr = load('cedentes');
+  if (editIdx.cedentes !== null) arr[editIdx.cedentes]=reg; else arr.push(reg);
+  save('cedentes',arr); closeModal('cedentes'); refreshAll();
+}
+
+// ══════════════════════════════════════
+// NEGOCIAÇÕES
+// ══════════════════════════════════════
+function renderNeg() {
+  const arr = load('negociacoes');
+  const busca = document.getElementById('busca-neg').value.toLowerCase();
+  const status = document.getElementById('filtro-status-neg').value;
+  const tbody = document.getElementById('tbody-neg');
+  const empty = document.getElementById('empty-neg');
+  const filtered = arr.filter(r =>
+    (!busca || r.cliente.toLowerCase().includes(busca)) &&
+    (!status || r.status === status)
+  );
+  if (!filtered.length) { tbody.innerHTML=''; empty.style.display='block'; return; }
+  empty.style.display='none';
+  tbody.innerHTML = filtered.map((r) => {
+    const origIdx = arr.indexOf(r);
+    return `<tr>
+      <td>${r.cliente}</td><td>${r.analista||'—'}</td>
+      <td>${fmtBRL(r.valor)}</td><td>${fmtBRL(r.entrada)}</td>
+      <td>${r.parcelas||'—'}</td><td>${fmtBRL(r.recebido)}</td>
+      <td>${fmtDate(r.previsao)}</td><td>${badge(r.status)}</td>
+      <td style="max-width:140px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;" title="${r.obs||''}">${r.obs||'—'}</td>
+      <td>
+        <button class="btn-edit" onclick="editNeg(${origIdx})">Editar</button>
+        <button class="btn-del" onclick="delNeg(${origIdx})">Excluir</button>
+      </td>
+    </tr>`;
+  }).join('');
+}
+function editNeg(i) {
+  const arr = load('negociacoes'); const r = arr[i];
+  editIdx.negociacoes = i;
+  document.getElementById('modal-neg-title').textContent='Editar negociação';
+  document.getElementById('neg-cliente').value=r.cliente;
+  document.getElementById('neg-analista').value=r.analista||'';
+  document.getElementById('neg-valor').value=r.valor||'';
+  document.getElementById('neg-entrada').value=r.entrada||'';
+  document.getElementById('neg-parcelas').value=r.parcelas||'';
+  document.getElementById('neg-recebido').value=r.recebido||'';
+  document.getElementById('neg-previsao').value=r.previsao||'';
+  document.getElementById('neg-status').value=r.status;
+  document.getElementById('neg-obs').value=r.obs||'';
+  document.getElementById('modal-negociacoes').classList.add('open');
+}
+function delNeg(i) {
+  if (!confirm('Excluir esta negociação?')) return;
+  const arr = load('negociacoes'); arr.splice(i,1); save('negociacoes',arr); refreshAll();
+}
+function saveNeg() {
+  const cliente = document.getElementById('neg-cliente').value.trim();
+  if (!cliente) { alert('Informe o nome do cliente.'); return; }
+  const reg = {
+    cliente, analista: document.getElementById('neg-analista').value,
+    valor: parseFloat(document.getElementById('neg-valor').value)||0,
+    entrada: parseFloat(document.getElementById('neg-entrada').value)||0,
+    parcelas: document.getElementById('neg-parcelas').value,
+    recebido: parseFloat(document.getElementById('neg-recebido').value)||0,
+    previsao: document.getElementById('neg-previsao').value,
+    status: document.getElementById('neg-status').value,
+    obs: document.getElementById('neg-obs').value.trim()
+  };
+  const arr = load('negociacoes');
+  if (editIdx.negociacoes !== null) arr[editIdx.negociacoes]=reg; else arr.push(reg);
+  save('negociacoes',arr); closeModal('negociacoes'); refreshAll();
+}
+
+// ══════════════════════════════════════
+// EXPORT CSV
+// ══════════════════════════════════════
+function exportCSV(type) {
+  const arr = load(type);
+  if (!arr.length) { alert('Nenhum dado para exportar.'); return; }
+  const keys = Object.keys(arr[0]);
+  const rows = [keys.join(';'), ...arr.map(r => keys.map(k => `"${String(r[k]||'').replace(/"/g,'""')}"`).join(';'))];
+  const blob = new Blob(['\uFEFF'+rows.join('\n')], {type:'text/csv;charset=utf-8;'});
+  const a = document.createElement('a'); a.href=URL.createObjectURL(blob);
+  a.download=`interbank_${type}_${new Date().toISOString().slice(0,10)}.csv`; a.click();
+}
+
+// ══════════════════════════════════════
+// IMPORT CSV (Planilhas)
+// ══════════════════════════════════════
+function importCSV(e) {
+  const file = e.target.files[0]; if (!file) return;
+  const reader = new FileReader();
+  reader.onload = function(ev) {
+    const lines = ev.target.result.split(/\r?\n/).filter(Boolean);
+    const headers = lines[0].split(/[;,]/).map(h=>h.trim().toLowerCase().replace(/['"]/g,''));
+    const arr = load('cobranca');
+    let count = 0;
+    for (let i=1;i<lines.length;i++) {
+      const vals = lines[i].split(/[;,]/).map(v=>v.replace(/^"|"$/g,'').trim());
+      const row = {}; headers.forEach((h,j)=>row[h]=vals[j]||'');
+      arr.push({
+        cliente: row['cliente']||row['nome']||'Sem nome',
+        cpf: row['cpf_cnpj']||row['cpf']||row['cnpj']||'',
+        analista: row['analista']||'',
+        valor: parseFloat((row['valor']||'0').replace(',','.'))||0,
+        vencimento: row['vencimento']||'',
+        status: row['status']||'Pendente',
+        obs: row['observacao']||row['obs']||''
+      });
+      count++;
+    }
+    save('cobranca',arr);
+    document.getElementById('import-log').innerHTML=`<span style="color:var(--green)">✓ ${count} registros importados com sucesso de <b>${file.name}</b>.</span>`;
+    refreshAll();
+  };
+  reader.readAsText(file,'utf-8');
+}
+
+// ══════════════════════════════════════
+// ESTATÍSTICAS & GRÁFICOS
+// ══════════════════════════════════════
+const chartInstances = {};
+function destroyChart(id) { if (chartInstances[id]) { chartInstances[id].destroy(); delete chartInstances[id]; } }
+
+function buildChart(id, type, labels, data, colors, opts={}) {
+  destroyChart(id);
+  const ctx = document.getElementById(id);
+  if (!ctx) return;
+  chartInstances[id] = new Chart(ctx, {
+    type, data: { labels, datasets: [{ data, backgroundColor: colors, borderColor: colors, borderWidth: type==='line'?2:0, fill: type==='line', tension: .4 }] },
+    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { labels: { color: '#9ca3af', font: {size:11} } } }, scales: type==='bar'||type==='line' ? { x:{ticks:{color:'#6b7280',font:{size:10}}}, y:{ticks:{color:'#6b7280',font:{size:10}}} } : {}, ...opts }
+  });
+}
+
+const COLORS = ['#5b6bff','#22c55e','#ef4444','#f59e0b','#a78bfa','#06b6d4','#f97316','#84cc16'];
+const ANALISTAS = ['Jennifer','Micael','Queila','Thais'];
+
+function refreshAll() {
+  const cob = load('cobranca');
+  const ced = load('cedentes');
+  const neg = load('negociacoes');
+
+  // Stats
+  const total = cob.reduce((s,r)=>s+r.valor,0);
+  const saldo = cob.filter(r=>r.status!=='Pago'&&r.status!=='Liquidado').reduce((s,r)=>s+r.valor,0);
+  const saldoReg = cob.filter(r=>r.status!=='Pago'&&r.status!=='Liquidado').length;
+  const negAbertas = neg.filter(r=>r.status==='Em andamento').length;
+  document.getElementById('stat-total').textContent=fmtBRL(total);
+  document.getElementById('stat-total-reg').textContent=`${cob.length} registros importados`;
+  document.getElementById('stat-saldo').textContent=fmtBRL(saldo);
+  document.getElementById('stat-saldo-reg').textContent=`${saldoReg} registros sem status Pago`;
+  document.getElementById('stat-cedentes').textContent=ced.length;
+  document.getElementById('stat-neg').textContent=negAbertas;
+
+  // Prioridades
+  const prio = [...cob].filter(r=>r.status!=='Pago').sort((a,b)=>b.valor-a.valor).slice(0,5);
+  const prioEl = document.getElementById('prioridades-list');
+  if (!prio.length) { prioEl.innerHTML='<p class="chart-empty">Nenhum registro ainda.</p>'; }
+  else { prioEl.innerHTML=prio.map(r=>`<div style="display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--sidebar-border);"><span style="font-size:.82rem;">${r.cliente}</span><strong style="font-size:.82rem;color:var(--accent)">${fmtBRL(r.valor)}</strong></div>`).join(''); }
+
+  // Analistas panel
+  const totalCob = cob.reduce((s,r)=>s+r.valor,0)||1;
+  const anDiv = document.getElementById('analistas-panel');
+  anDiv.innerHTML = ANALISTAS.map(a => {
+    const regs = cob.filter(r=>r.analista===a);
+    const val = regs.reduce((s,r)=>s+r.valor,0);
+    const pct = Math.max(2, Math.round(val/totalCob*100));
+    return `<div class="analyst"><div><b>${a}</b><span>${fmtBRL(val)}</span></div><div class="track"><i style="width:${pct}%"></i></div><small>${regs.length} registros</small></div>`;
+  }).join('');
+
+  // Gráfico: cobranças por status
+  const statusCounts = {};
+  cob.forEach(r=>{ statusCounts[r.status]=(statusCounts[r.status]||0)+1; });
+  buildChart('chart-status','doughnut',Object.keys(statusCounts),Object.values(statusCounts),COLORS);
+
+  // Gráfico: valores por faixa de atraso
+  const faixas = {'0–30d':0,'31–60d':0,'61–90d':0,'91–180d':0,'180d+':0};
+  cob.filter(r=>r.status!=='Pago').forEach(r=>{
+    if(!r.vencimento) return;
+    const d=Math.floor((Date.now()-new Date(r.vencimento+'T00:00:00'))/86400000);
+    if(d<=30) faixas['0–30d']+=r.valor;
+    else if(d<=60) faixas['31–60d']+=r.valor;
+    else if(d<=90) faixas['61–90d']+=r.valor;
+    else if(d<=180) faixas['91–180d']+=r.valor;
+    else faixas['180d+']+=r.valor;
+  });
+  buildChart('chart-atraso','bar',Object.keys(faixas),Object.values(faixas),COLORS);
+
+  // Gráfico: carteira por analista
+  const anVals = ANALISTAS.map(a=>cob.filter(r=>r.analista===a).reduce((s,r)=>s+r.valor,0));
+  buildChart('chart-analista','doughnut',ANALISTAS,anVals,COLORS);
+
+  // Gráfico: meta de ligações (qtd com obs preenchida)
+  const comObs = ANALISTAS.map(a=>cob.filter(r=>r.analista===a&&r.obs).length);
+  const semObs = ANALISTAS.map(a=>cob.filter(r=>r.analista===a&&!r.obs).length);
+  destroyChart('chart-ligacoes');
+  const ctxL = document.getElementById('chart-ligacoes');
+  if (ctxL) {
+    chartInstances['chart-ligacoes'] = new Chart(ctxL, {
+      type:'bar',
+      data:{ labels:ANALISTAS, datasets:[{label:'Com resultado',data:comObs,backgroundColor:'#5b6bff'},{label:'Sem resultado',data:semObs,backgroundColor:'#374151'}] },
+      options:{ responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{color:'#9ca3af',font:{size:11}}}},scales:{x:{ticks:{color:'#6b7280'}},y:{ticks:{color:'#6b7280'}}} }
     });
-  </script>
+  }
+
+  // Gráfico: situação dos protestos
+  const sitCounts = {};
+  ced.forEach(r=>{ sitCounts[r.situacao]=(sitCounts[r.situacao]||0)+1; });
+  buildChart('chart-protestos','doughnut',Object.keys(sitCounts),Object.values(sitCounts),COLORS);
+
+  // Gráfico: valores protestados
+  const sitVals = {};
+  ced.forEach(r=>{ sitVals[r.situacao]=(sitVals[r.situacao]||0)+r.valor; });
+  buildChart('chart-val-protestados','bar',Object.keys(sitVals),Object.values(sitVals),COLORS);
+
+  // Gráfico: evolução negociações
+  const negStatus = {};
+  neg.forEach(r=>{ negStatus[r.status]=(negStatus[r.status]||0)+1; });
+  buildChart('chart-neg-evolucao','doughnut',Object.keys(negStatus),Object.values(negStatus),COLORS);
+
+  // Gráfico: negociado x recebido
+  const totalNeg = neg.reduce((s,r)=>s+r.valor,0);
+  const totalRec = neg.reduce((s,r)=>s+r.recebido,0);
+  buildChart('chart-neg-recebido','bar',['Negociado','Recebido'],[totalNeg,totalRec],['#5b6bff','#22c55e']);
+
+  // Render tabelas visíveis
+  renderCobranca();
+  renderCedentes();
+  renderNeg();
+}
+
+// Fechar modal clicando fora
+document.querySelectorAll('.modal-overlay').forEach(o=>o.addEventListener('click',function(e){if(e.target===this)this.classList.remove('open');}));
+
+// Init
+refreshAll();
+</script>
 </body>
 </html>
