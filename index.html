@@ -2,23 +2,21 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
-  <title>Interbank – Login</title>
+  <title>Interbank – Login (Admin)</title>
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <link rel="stylesheet" href="style.css">
-  <!-- Supabase SDK via CDN -->
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.44.5/dist/umd/supabase.js"></script>
 </head>
 <body>
   <main class="center">
-    <h1>Interbank</h1>
+    <h1>Interbank – Admin</h1>
     <form id="loginForm">
       <label>
-        E‑mail corporativo
-        <input type="email" id="email" required placeholder="nome@lsinterbank.com.br">
+        Usuário (admin)
+        <input type="text" id="user" required placeholder="admin">
       </label>
       <label>
         Senha
-        <input type="password" id="password" required placeholder="Ls@102030">
+        <input type="password" id="pass" required placeholder="123">
       </label>
       <button type="submit">Entrar</button>
     </form>
@@ -26,43 +24,21 @@
   </main>
 
   <script>
-    // 👉 Substitua aqui pelas credenciais que já foram enviadas ao Vercel
-    const SUPABASE_URL = "https://sktinlymlwkfkvwylbzy.supabase.co";
-    const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNrdGlubHltbHdrZmt2d3lsYnp5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTIxODMwOTUsImV4cCI6MjEwNzc1OTA5NX0.ax3bxpff2MhpVCA6_347kcBrzBRVoAHrPdzyd18Pxyg";
-
-    const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-
     const form = document.getElementById('loginForm');
-    const msg  = document.getElementById('msg');
+    const msg = document.getElementById('msg');
 
-    form.addEventListener('submit', async (e) => {
+    form.addEventListener('submit', (e) => {
       e.preventDefault();
-      const email = document.getElementById('email').value.trim();
-      const password = document.getElementById('password').value;
+      const user = document.getElementById('user').value.trim();
+      const pass = document.getElementById('pass').value;
 
-      // 1️⃣ verifica domínio
-      if (!email.endsWith('@lsinterbank.com.br')) {
-        msg.textContent = "Somente e‑mails @lsinterbank.com.br são permitidos.";
-        msg.style.color = "red";
-        return;
+      if (user === 'admin' && pass === '123') {
+        msg.textContent = 'Bem‑vindo, admin!';
+        msg.style.color = 'green';
+      } else {
+        msg.textContent = 'Credenciais inválidas.';
+        msg.style.color = 'red';
       }
-
-      // 2️⃣ tenta login (a primeira conta tem a senha padrão)
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email,
-        password
-      });
-
-      if (error) {
-        msg.textContent = "Credenciais inválidas.";
-        msg.style.color = "red";
-        console.error(error);
-        return;
-      }
-
-      // 3️⃣ sucesso – exibe mensagem simples
-      msg.textContent = `Bem‑vindo, ${email.split('@')[0]}!`;
-      msg.style.color = "green";
     });
   </script>
 </body>
